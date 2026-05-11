@@ -1,0 +1,10 @@
+name = "saffron-extractor"
+main = "worker.js"
+compatibility_date = "2024-09-23"
+
+# Workers AI binding — no external API key needed
+[ai]
+binding = "AI"
+
+[observability]
+enabled = true

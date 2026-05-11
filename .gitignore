@@ -1,0 +1,31 @@
+# Xcode
+*.xcodeproj/
+*.xcworkspace/
+xcuserdata/
+*.xccheckout
+*.moved-aside
+DerivedData/
+*.hmap
+*.ipa
+*.dSYM.zip
+*.dSYM
+
+# SwiftPM
+.build/
+.swiftpm/
+
+# CocoaPods (not used, but just in case)
+Pods/
+
+# Cloudflare / Node
+node_modules/
+.dev.vars
+wrangler.toml.bak
+
+# OS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Claude Code
+.claude/
