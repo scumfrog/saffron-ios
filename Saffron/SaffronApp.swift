@@ -11,7 +11,7 @@ struct SaffronApp: App {
         do {
             container = try ModelContainer(
                 for: Recipe.self, RecipeList.self,
-                configurations: ModelConfiguration("SaffronV2")
+                configurations: ModelConfiguration("SaffronV2", cloudKitDatabase: .automatic)
             )
         } catch {
             fatalError("Failed to create ModelContainer: \(error)")
