@@ -8,13 +8,19 @@ struct SaffronApp: App {
     @State private var theme = AppTheme()
 
     init() {
-        do {
-            container = try ModelContainer(
-                for: Recipe.self, RecipeList.self,
-                configurations: ModelConfiguration(cloudKitDatabase: .automatic)
-            )
-        } catch {
-            fatalError("Failed to create ModelContainer: \(error)")
+        let schema = Schema([Recipe.self, RecipeList.self])
+        if let ckContainer = try? ModelContainer(
+            for: schema,
+            configurations: ModelConfiguration(schema: schema, cloudKitDatabase: .automatic)
+        ) {
+            container = ckContainer
+        } else if let localContainer = try? ModelContainer(
+            for: schema,
+            configurations: ModelConfiguration(schema: schema)
+        ) {
+            container = localContainer
+        } else {
+            fatalError("Failed to create ModelContainer")
         }
     }
 
