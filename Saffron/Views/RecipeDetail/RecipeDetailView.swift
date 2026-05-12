@@ -15,6 +15,9 @@ struct RecipeDetailView: View {
     @State private var showAddToList = false
     @State private var showDeleteConfirm = false
     @State private var showArchiveConfirm = false
+    @State private var imageFetchFailed = false
+    @State private var saveError: String?
+    @State private var showAllIngredients = false
 
     enum DetailTab: String, CaseIterable {
         case ingredients = "Ingredients"
@@ -51,8 +54,12 @@ struct RecipeDetailView: View {
         .confirmationDialog("Delete recipe?", isPresented: $showDeleteConfirm, titleVisibility: .visible) {
             Button("Delete", role: .destructive) {
                 context.delete(recipe)
-                try? context.save()
-                dismiss()
+                do {
+                    try context.save()
+                    dismiss()
+                } catch {
+                    saveError = error.localizedDescription
+                }
             }
             Button("Cancel", role: .cancel) {}
         } message: {
@@ -64,8 +71,13 @@ struct RecipeDetailView: View {
         ) {
             Button(recipe.isArchived ? "Unarchive" : "Archive") {
                 recipe.isArchived.toggle()
-                try? context.save()
-                if !recipe.isArchived { dismiss() }
+                do {
+                    try context.save()
+                    if !recipe.isArchived { dismiss() }
+                } catch {
+                    recipe.isArchived.toggle() // revert
+                    saveError = error.localizedDescription
+                }
             }
             Button("Cancel", role: .cancel) {}
         } message: {
@@ -74,12 +86,24 @@ struct RecipeDetailView: View {
                  : "Archived recipes are hidden from the main library.")
         }
         .task(id: recipe.id) {
-            guard recipe.coverData == nil, let urlStr = recipe.sourceURL,
-                  let url = URL(string: urlStr) else { return }
-            guard let extracted = try? await ExtractionService.shared.extract(url: url),
-                  let data = await ImageCacheService.shared.fetchImageData(from: extracted.coverURL) else { return }
+            // Only retry if image is missing and we have a stored cover URL.
+            // Uses ImageCacheService directly — never needs a full AI re-extraction.
+            guard recipe.coverData == nil, recipe.coverURL != nil else { return }
+            guard let data = await ImageCacheService.shared.fetchImageData(from: recipe.coverURL) else {
+                imageFetchFailed = true
+                return
+            }
+            imageFetchFailed = false
             recipe.coverData = data
             try? context.save()
+        }
+        .alert("Save Error", isPresented: Binding(
+            get: { saveError != nil },
+            set: { if !$0 { saveError = nil } }
+        )) {
+            Button("OK") { saveError = nil }
+        } message: {
+            Text(saveError ?? "")
         }
     }
 
@@ -102,9 +126,16 @@ struct RecipeDetailView: View {
                 } else {
                     theme.accent
                         .frame(height: max(320, 320 + minY))
-                    Image(systemName: "fork.knife")
-                        .font(.system(size: 64))
-                        .foregroundStyle(.white.opacity(0.4))
+                    VStack(spacing: 12) {
+                        Image(systemName: imageFetchFailed ? "photo.badge.exclamationmark" : "fork.knife")
+                            .font(.system(size: 56))
+                            .foregroundStyle(.white.opacity(0.45))
+                        if imageFetchFailed {
+                            Text("Image unavailable")
+                                .font(.caption)
+                                .foregroundStyle(.white.opacity(0.6))
+                        }
+                    }
                 }
 
                 LinearGradient(
@@ -251,7 +282,11 @@ struct RecipeDetailView: View {
     // MARK: - Ingredients tab
 
     private var ingredientsTab: some View {
-        VStack(spacing: 0) {
+        let all = recipe.ingredients
+        let threshold = 8
+        let visible = showAllIngredients ? all : Array(all.prefix(threshold))
+
+        return VStack(spacing: 0) {
             if ratio != 1 {
                 Text(servings == 1
                     ? "Quantities adjusted for \(servings) serving"
@@ -263,49 +298,69 @@ struct RecipeDetailView: View {
                     .padding(.vertical, 10)
                     .background(theme.accent.opacity(0.08))
             }
-            ForEach(Array(recipe.ingredients.enumerated()), id: \.offset) { index, ing in
+            ForEach(Array(visible.enumerated()), id: \.offset) { index, ing in
+                ingredientRow(ing: ing, index: index)
+            }
+            if all.count > threshold {
                 Button {
-                    if checkedIngredients.contains(index) {
-                        checkedIngredients.remove(index)
-                    } else {
-                        checkedIngredients.insert(index)
-                    }
+                    withAnimation(.easeInOut(duration: 0.2)) { showAllIngredients.toggle() }
                 } label: {
-                    HStack(spacing: 12) {
-                        ZStack {
-                            Circle()
-                                .strokeBorder(
-                                    checkedIngredients.contains(index) ? theme.accent : Color.secondary.opacity(0.4),
-                                    lineWidth: 1.5
-                                )
-                                .frame(width: 22, height: 22)
-                            if checkedIngredients.contains(index) {
-                                Circle()
-                                    .fill(theme.accent)
-                                    .frame(width: 22, height: 22)
-                                Image(systemName: "checkmark")
-                                    .font(.system(size: 11, weight: .bold))
-                                    .foregroundStyle(.white)
-                            }
-                        }
-                        Text(ing.displayLine(ratio: ratio))
-                            .font(.system(size: 15))
-                            .tracking(-0.2)
-                            .foregroundStyle(checkedIngredients.contains(index) ? .secondary : .primary)
-                            .strikethrough(checkedIngredients.contains(index), color: .secondary)
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                    }
-                    .padding(.horizontal, 14)
-                    .padding(.vertical, 12)
-                    .background(Color(.secondarySystemGroupedBackground))
-                    .overlay(alignment: .top) {
-                        if index > 0 { Divider().padding(.leading, 48) }
-                    }
+                    Text(showAllIngredients
+                         ? "Show fewer"
+                         : "Show all \(all.count) ingredients")
+                        .font(.system(size: 14, weight: .medium))
+                        .foregroundStyle(theme.accent)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 13)
+                        .background(Color(.secondarySystemGroupedBackground))
+                        .overlay(alignment: .top) { Divider().padding(.leading, 14) }
                 }
                 .buttonStyle(.plain)
             }
         }
         .clipShape(RoundedRectangle(cornerRadius: 14))
+    }
+
+    private func ingredientRow(ing: Ingredient, index: Int) -> some View {
+        Button {
+            if checkedIngredients.contains(index) {
+                checkedIngredients.remove(index)
+            } else {
+                checkedIngredients.insert(index)
+            }
+        } label: {
+            HStack(spacing: 12) {
+                ZStack {
+                    Circle()
+                        .strokeBorder(
+                            checkedIngredients.contains(index) ? theme.accent : Color.secondary.opacity(0.4),
+                            lineWidth: 1.5
+                        )
+                        .frame(width: 22, height: 22)
+                    if checkedIngredients.contains(index) {
+                        Circle()
+                            .fill(theme.accent)
+                            .frame(width: 22, height: 22)
+                        Image(systemName: "checkmark")
+                            .font(.system(size: 11, weight: .bold))
+                            .foregroundStyle(.white)
+                    }
+                }
+                Text(ing.displayLine(ratio: ratio))
+                    .font(.system(size: 15))
+                    .tracking(-0.2)
+                    .foregroundStyle(checkedIngredients.contains(index) ? .secondary : .primary)
+                    .strikethrough(checkedIngredients.contains(index), color: .secondary)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+            }
+            .padding(.horizontal, 14)
+            .padding(.vertical, 12)
+            .background(Color(.secondarySystemGroupedBackground))
+            .overlay(alignment: .top) {
+                if index > 0 { Divider().padding(.leading, 48) }
+            }
+        }
+        .buttonStyle(.plain)
     }
 
     // MARK: - Steps tab

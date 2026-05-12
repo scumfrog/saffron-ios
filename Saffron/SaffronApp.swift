@@ -37,7 +37,8 @@ struct SaffronApp: App {
                     guard url.scheme == "saffron", url.host == "add",
                           let components = URLComponents(url: url, resolvingAgainstBaseURL: false),
                           let rawURL = components.queryItems?.first(where: { $0.name == "url" })?.value,
-                          let recipeURL = URL(string: rawURL) else { return }
+                          let recipeURL = URL(string: rawURL),
+                          recipeURL.scheme == "https" || recipeURL.scheme == "http" else { return }
                     NotificationCenter.default.post(name: .pendingRecipeURL, object: recipeURL)
                 }
         }

@@ -44,6 +44,7 @@ final class AddRecipeViewModel {
         return Recipe(
             title: editedTitle,
             coverData: coverData,
+            coverURL: extracted.coverURL,
             sourceURL: urlText,
             sourceLabel: extracted.sourceLabel,
             sourceType: sourceType(for: urlText),

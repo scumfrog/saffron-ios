@@ -21,6 +21,21 @@ export default {
       return corsResponse(json({ message: 'Method not allowed' }, 405));
     }
 
+    // Route guard — accept /v1/extract (current) and /extract (legacy, v1.0 app)
+    const pathname = new URL(request.url).pathname;
+    if (pathname !== '/v1/extract' && pathname !== '/extract') {
+      return corsResponse(json({ message: 'Not found' }, 404));
+    }
+
+    // API key guard — only enforced if WORKER_API_KEY secret is configured.
+    // Set via: wrangler secret put WORKER_API_KEY
+    if (env.WORKER_API_KEY) {
+      const providedKey = request.headers.get('X-API-Key') ?? '';
+      if (providedKey !== env.WORKER_API_KEY) {
+        return corsResponse(json({ message: 'Unauthorized' }, 401));
+      }
+    }
+
     // Parse body
     let body;
     try {

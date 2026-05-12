@@ -29,3 +29,7 @@ wrangler.toml.bak
 
 # Claude Code
 .claude/
+keys/
+
+# Secrets — never commit
+Secrets.xcconfig

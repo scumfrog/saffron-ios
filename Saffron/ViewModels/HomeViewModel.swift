@@ -3,12 +3,7 @@ import Observation
 
 @Observable
 final class HomeViewModel {
-    var isRefreshing = false
-
-    /// Hook for manual refresh (CloudKit syncs automatically; this simulates a delay).
-    func refresh() async {
-        isRefreshing = true
-        try? await Task.sleep(for: .milliseconds(600))
-        isRefreshing = false
-    }
+    // CloudKit syncs automatically — there is nothing to trigger manually.
+    // The pull-to-refresh gesture completes immediately after this returns.
+    func refresh() async {}
 }

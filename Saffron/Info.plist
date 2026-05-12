@@ -46,5 +46,7 @@
 	<array>
 		<string>UIInterfaceOrientationPortrait</string>
 	</array>
+	<key>WorkerAPIKey</key>
+	<string>$(WORKER_API_KEY)</string>
 </dict>
 </plist>

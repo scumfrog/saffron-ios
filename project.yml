@@ -8,6 +8,10 @@ options:
   generateEmptyDirectories: true
   developmentLanguage: en
 
+configFiles:
+  Debug: Secrets.xcconfig
+  Release: Secrets.xcconfig
+
 settings:
   base:
     SWIFT_VERSION: "5.9"
@@ -31,6 +35,7 @@ targets:
         CFBundleURLTypes:
           - CFBundleURLSchemes:
               - saffron
+        WorkerAPIKey: "$(WORKER_API_KEY)"
         NSCameraUsageDescription: "Used to capture recipe photos."
         NSPhotoLibraryUsageDescription: "Used to import recipe photos."
         UILaunchScreen:
@@ -48,6 +53,19 @@ targets:
         CODE_SIGN_ENTITLEMENTS: Saffron/Saffron.entitlements
     dependencies:
       - target: SaffronShareExtension
+
+  SaffronTests:
+    type: bundle.unit-test
+    platform: iOS
+    sources:
+      - path: SaffronTests
+    dependencies:
+      - target: Saffron
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: app.saffron.ios.tests
+        TEST_HOST: $(BUILT_PRODUCTS_DIR)/Saffron.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Saffron
+        BUNDLE_LOADER: $(TEST_HOST)
 
   SaffronShareExtension:
     type: app-extension
@@ -75,10 +93,15 @@ schemes:
       targets:
         Saffron: all
         SaffronShareExtension: [build]
+        SaffronTests: [test]
     run:
       config: Debug
     test:
       config: Debug
+      targets:
+        - name: SaffronTests
+          parallelizable: true
+          randomExecutionOrder: true
     profile:
       config: Release
     analyze:

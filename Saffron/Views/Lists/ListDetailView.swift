@@ -47,18 +47,28 @@ struct ListDetailView: View {
     }
 
     private var emptyState: some View {
-        VStack(spacing: 16) {
-            Image(systemName: "fork.knife")
-                .font(.system(size: 40))
-                .foregroundStyle(.quaternary)
-            Text("No recipes yet")
-                .font(.headline)
-            Text("Open a recipe and tap \"Add to list\".")
-                .font(.subheadline)
-                .foregroundStyle(.secondary)
-                .multilineTextAlignment(.center)
+        let listColor = Color(hex: list.colorHex) ?? theme.accent
+        return VStack(spacing: 20) {
+            ZStack {
+                Circle()
+                    .fill(listColor.opacity(0.12))
+                    .frame(width: 100, height: 100)
+                Image(systemName: list.icon)
+                    .font(.system(size: 44))
+                    .foregroundStyle(listColor)
+            }
+            VStack(spacing: 8) {
+                Text("No recipes yet")
+                    .font(.headline)
+                Text("Open any recipe, tap \u{201C}Add to list\u{201D}, and choose \u{201C}\(list.name)\u{201D}.")
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+                    .multilineTextAlignment(.center)
+                    .padding(.horizontal, 40)
+            }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(Color(.systemGroupedBackground))
     }
 
     private func removeFromList(_ recipe: Recipe) {

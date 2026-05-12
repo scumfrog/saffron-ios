@@ -4,7 +4,7 @@ struct OnboardingView: View {
     let onDone: () -> Void
     @Environment(AppTheme.self) private var theme
     @State private var currentSlide = 0
-    @State private var iCloudEnabled = false
+    @AppStorage("iCloudEnabled") private var iCloudEnabled = true
 
     private struct Slide: Identifiable {
         let id: Int

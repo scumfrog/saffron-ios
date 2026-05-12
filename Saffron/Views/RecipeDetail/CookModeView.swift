@@ -29,11 +29,13 @@ struct CookModeView: View {
                         .padding(.vertical, 6)
                         .background(.white.opacity(0.12), in: Capsule())
                     }
+                    .accessibilityLabel("Exit cook mode")
                     Spacer()
                     Text("COOK MODE")
                         .font(.system(size: 13, weight: .medium))
                         .tracking(0.4)
                         .foregroundStyle(.white.opacity(0.6))
+                        .accessibilityHidden(true)
                     Spacer()
                     // Balance spacer
                     HStack(spacing: 4) {
@@ -58,6 +60,9 @@ struct CookModeView: View {
                 }
                 .padding(.horizontal, 16)
                 .padding(.top, 28)
+                .accessibilityElement(children: .ignore)
+                .accessibilityLabel("Step progress")
+                .accessibilityValue("Step \(currentStep + 1) of \(totalSteps)")
 
                 // Step counter
                 Text("Step \(currentStep + 1) of \(totalSteps)")
@@ -68,6 +73,7 @@ struct CookModeView: View {
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .padding(.horizontal, 28)
                     .padding(.top, 24)
+                    .accessibilityHidden(true) // already in progress bar above
 
                 // Step text
                 ScrollView {
@@ -81,12 +87,14 @@ struct CookModeView: View {
                         .padding(.top, 24)
                 }
                 .frame(maxHeight: .infinity)
+                .accessibilityLabel("Step \(currentStep + 1): \(recipe.steps[currentStep])")
 
                 // Hint
                 Text("Screen active · Won't lock while cooking")
                     .font(.system(size: 12))
                     .foregroundStyle(.white.opacity(0.4))
                     .padding(.bottom, 8)
+                    .accessibilityHidden(true)
 
                 // Navigation buttons
                 HStack(spacing: 12) {
@@ -107,6 +115,8 @@ struct CookModeView: View {
                     }
                     .disabled(currentStep == 0)
                     .opacity(currentStep == 0 ? 0.35 : 1)
+                    .accessibilityLabel("Previous step")
+                    .accessibilityHint(currentStep > 0 ? "Go back to step \(currentStep)" : "")
 
                     Button {
                         if currentStep == totalSteps - 1 {
@@ -129,6 +139,8 @@ struct CookModeView: View {
                         .background(theme.accent, in: RoundedRectangle(cornerRadius: 14))
                     }
                     .frame(maxWidth: .infinity * 1.5)
+                    .accessibilityLabel(currentStep == totalSteps - 1 ? "Done cooking" : "Next step")
+                    .accessibilityHint(currentStep < totalSteps - 1 ? "Go to step \(currentStep + 2)" : "Finish and exit cook mode")
                 }
                 .padding(.horizontal, 16)
                 .padding(.bottom, 40)

@@ -3,16 +3,22 @@ import SwiftData
 
 struct SearchView: View {
     @Environment(AppTheme.self) private var theme
-    @Query(sort: \Recipe.title) private var allRecipes: [Recipe]
     @State private var viewModel = SearchViewModel()
     @State private var selectedRecipe: Recipe?
+
+    // Archived recipes excluded at the SQLite level — the main performance win.
+    @Query(filter: #Predicate<Recipe> { !$0.isArchived }, sort: \Recipe.title)
+    private var allRecipes: [Recipe]
 
     private var allTags: [String] {
         Array(Set(allRecipes.flatMap { $0.tags })).sorted()
     }
 
+    // Full-text + tag filter runs in Swift on the already-reduced (non-archived) set.
     private var filtered: [Recipe] {
-        allRecipes.filter { viewModel.matches($0) }
+        let q = viewModel.query.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !q.isEmpty || !viewModel.activeTags.isEmpty else { return allRecipes }
+        return allRecipes.filter { viewModel.matches($0) }
     }
 
     var body: some View {

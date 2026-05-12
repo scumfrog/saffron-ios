@@ -40,10 +40,7 @@ struct LanguageSettingsView: View {
         .navigationTitle("Language")
         .navigationBarTitleDisplayMode(.inline)
         .alert("language.restart.title", isPresented: $showRestartAlert) {
-            Button("language.restart.now", role: .destructive) {
-                exit(0)
-            }
-            Button("Later", role: .cancel) {}
+            Button("OK") {}
         } message: {
             Text("language.restart.message")
         }

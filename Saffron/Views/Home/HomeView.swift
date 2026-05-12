@@ -6,9 +6,20 @@ struct HomeView: View {
            sort: \Recipe.addedAt, order: .reverse)
     private var favorites: [Recipe]
 
-    @Query(filter: #Predicate<Recipe> { !$0.isArchived },
-           sort: \Recipe.addedAt, order: .reverse)
+    // Full list (no limit) — used only for the "N recipes saved" count in the header.
+    @Query(filter: #Predicate<Recipe> { !$0.isArchived })
     private var allRecipes: [Recipe]
+
+    // Limited to 15 at the database level — used for the Recent section.
+    @Query({
+        var d = FetchDescriptor<Recipe>(
+            predicate: #Predicate { !$0.isArchived },
+            sortBy: [SortDescriptor(\.addedAt, order: .reverse)]
+        )
+        d.fetchLimit = 15
+        return d
+    }())
+    private var recentRecipes: [Recipe]
 
     @Environment(\.modelContext) private var context
     @State private var viewModel = HomeViewModel()
@@ -72,7 +83,7 @@ struct HomeView: View {
         VStack(spacing: 0) {
             SectionHeader(title: "Recent", subtitle: "This month")
             VStack(spacing: 0) {
-                ForEach(Array(allRecipes.prefix(15).enumerated()), id: \.element.id) { index, recipe in
+                ForEach(Array(recentRecipes.enumerated()), id: \.element.id) { index, recipe in
                     SwipeToDeleteRow(onDelete: { context.delete(recipe) }) {
                         RecipeRowView(recipe: recipe, isFirst: index == 0)
                             .onTapGesture { selectedRecipe = recipe }

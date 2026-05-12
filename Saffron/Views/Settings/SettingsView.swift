@@ -159,12 +159,17 @@ struct SettingsView: View {
     }
 
     private func writeExportFile(data: Data) -> URL? {
-        let url = FileManager.default.temporaryDirectory
-            .appendingPathComponent("saffron-recipes.json")
+        guard let docs = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first else {
+            return nil
+        }
+        let url = docs.appendingPathComponent("saffron-recipes.json")
         do {
-            try data.write(to: url)
+            // .completeFileProtection = NSFileProtectionComplete: file is
+            // inaccessible while the device is locked.
+            try data.write(to: url, options: [.atomic, .completeFileProtection])
             return url
         } catch {
+            exportError = error.localizedDescription
             return nil
         }
     }

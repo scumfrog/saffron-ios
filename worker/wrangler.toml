@@ -8,3 +8,13 @@ binding = "AI"
 
 [observability]
 enabled = true
+
+# ── Rate limiting ─────────────────────────────────────────────────────────────
+# Configure via Cloudflare Dashboard → Security → WAF → Rate Limiting Rules.
+# Recommended rule: 30 requests / 1 minute per IP on POST /extract.
+#
+# ── API key secret ────────────────────────────────────────────────────────────
+# The worker optionally validates an X-API-Key header when WORKER_API_KEY is set.
+# To enable:
+#   wrangler secret put WORKER_API_KEY
+# Then set the same value in the iOS app via Xcode scheme env var or xcconfig.

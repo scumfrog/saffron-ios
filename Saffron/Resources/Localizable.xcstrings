@@ -589,13 +589,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The app will close and reopen in the selected language."
+            "value" : "Close and reopen Saffron to apply the selected language."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "La app se cerrará y volverá a abrirse en el idioma seleccionado."
+            "value" : "Cierra y vuelve a abrir Saffron para aplicar el idioma seleccionado."
           }
         }
       }
@@ -605,13 +605,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Saffron needs to restart to apply the new language."
+            "value" : "Close and reopen Saffron to apply the new language."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Saffron necesita reiniciarse para aplicar el nuevo idioma."
+            "value" : "Cierra y vuelve a abrir Saffron para aplicar el nuevo idioma."
           }
         }
       }

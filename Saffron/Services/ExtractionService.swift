@@ -48,6 +48,9 @@ actor ExtractionService {
         var request = URLRequest(url: Config.extractionAPIURL)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        if !WorkerAuth.apiKey.isEmpty {
+            request.setValue(WorkerAuth.apiKey, forHTTPHeaderField: "X-API-Key")
+        }
         request.httpBody = try JSONEncoder().encode(["url": url.absoluteString])
 
         let (data, response) = try await session.data(for: request)

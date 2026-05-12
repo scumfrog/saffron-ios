@@ -17,7 +17,9 @@ struct Ingredient: Codable, Hashable {
     }
 
     /// Human-readable line: "300 g harina de fuerza"
+    /// When quantity is 0 (e.g. "al gusto"), only the name is returned.
     func displayLine(ratio: Double = 1) -> String {
+        if quantity == 0 { return name }
         let qty = formattedQuantity(ratio: ratio)
         let parts = [qty, unit.isEmpty ? nil : unit, name].compactMap { s -> String? in
             guard let s else { return nil }
