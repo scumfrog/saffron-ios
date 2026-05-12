@@ -14,7 +14,7 @@ settings:
     IPHONEOS_DEPLOYMENT_TARGET: "17.0"
     DEVELOPMENT_TEAM: "55B6G89M7F"
     MARKETING_VERSION: "1.0.0"
-    CURRENT_PROJECT_VERSION: "1"
+    CURRENT_PROJECT_VERSION: "3"
 
 targets:
   Saffron:
@@ -24,8 +24,6 @@ targets:
       - path: Saffron
     resources:
       - path: Saffron/Resources
-    entitlements:
-      path: Saffron/Saffron.entitlements
     info:
       path: Saffron/Info.plist
       properties:
@@ -45,13 +43,7 @@ targets:
         TARGETED_DEVICE_FAMILY: "1"
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: AccentColor
-    capabilities:
-      iCloud:
-        cloudKit: true
-      pushNotifications: {}
-      appGroups:
-        groups:
-          - group.app.saffron.ios
+        CODE_SIGN_ENTITLEMENTS: Saffron/Saffron.entitlements
     dependencies:
       - target: SaffronShareExtension
 
@@ -60,8 +52,6 @@ targets:
     platform: iOS
     sources:
       - path: SaffronShareExtension
-    entitlements:
-      path: SaffronShareExtension/SaffronShareExtension.entitlements
     info:
       path: SaffronShareExtension/Info.plist
       properties:
@@ -75,7 +65,5 @@ targets:
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: app.saffron.ios.share
-    capabilities:
-      appGroups:
-        groups:
-          - group.app.saffron.ios
+        CODE_SIGN_ENTITLEMENTS: SaffronShareExtension/SaffronShareExtension.entitlements
+
