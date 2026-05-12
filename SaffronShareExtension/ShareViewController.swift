@@ -74,6 +74,6 @@ final class ShareViewController: UIViewController {
 // MARK: - AppGroup constants (mirrored from main target)
 
 private enum AppGroup {
-    static let identifier = "group.com.saffron.app"
+    static let identifier = "group.app.saffron.ios"
     static let pendingURLKey = "pendingRecipeURL"
 }
