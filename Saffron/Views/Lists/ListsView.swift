@@ -79,6 +79,7 @@ struct ListsView: View {
 
 struct ListCardView: View {
     let list: RecipeList
+    @Environment(\.modelContext) private var context
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
@@ -86,7 +87,7 @@ struct ListCardView: View {
                 RoundedRectangle(cornerRadius: 10)
                     .fill(list.color.opacity(0.18))
                     .frame(width: 38, height: 38)
-                Image(systemName: "fork.knife")
+                Image(systemName: list.icon)
                     .font(.system(size: 17, weight: .semibold))
                     .foregroundStyle(list.color)
             }
@@ -108,5 +109,12 @@ struct ListCardView: View {
         .background(Color(.secondarySystemGroupedBackground))
         .clipShape(RoundedRectangle(cornerRadius: 18))
         .contentShape(Rectangle())
+        .contextMenu {
+            Button(role: .destructive) {
+                context.delete(list)
+            } label: {
+                Label("Delete list", systemImage: "trash")
+            }
+        }
     }
 }

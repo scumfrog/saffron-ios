@@ -10,6 +10,7 @@ struct HomeView: View {
            sort: \Recipe.addedAt, order: .reverse)
     private var allRecipes: [Recipe]
 
+    @Environment(\.modelContext) private var context
     @State private var viewModel = HomeViewModel()
     @State private var selectedRecipe: Recipe?
 
@@ -72,8 +73,10 @@ struct HomeView: View {
             SectionHeader(title: "Recent", subtitle: "This month")
             VStack(spacing: 0) {
                 ForEach(Array(allRecipes.prefix(15).enumerated()), id: \.element.id) { index, recipe in
-                    RecipeRowView(recipe: recipe, isFirst: index == 0)
-                        .onTapGesture { selectedRecipe = recipe }
+                    SwipeToDeleteRow(onDelete: { context.delete(recipe) }) {
+                        RecipeRowView(recipe: recipe, isFirst: index == 0)
+                            .onTapGesture { selectedRecipe = recipe }
+                    }
                 }
             }
             .background(Color(.secondarySystemGroupedBackground))
