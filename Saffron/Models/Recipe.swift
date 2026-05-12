@@ -3,23 +3,23 @@ import SwiftData
 
 @Model
 final class Recipe {
-    var id: UUID
-    var title: String
+    var id: UUID = UUID()
+    var title: String = ""
     var coverData: Data?
     var sourceURL: String?
-    var sourceLabel: String
-    var sourceType: SourceType
-    var isFavorite: Bool
-    var isArchived: Bool
-    var timeMin: Int
-    var servings: Int
-    var difficulty: String   // normalized: "easy" | "medium" | "hard"
-    var tags: [String]
-    var ingredients: [Ingredient]
-    var steps: [String]
-    var notes: String
-    var addedAt: Date
-    var lists: [RecipeList]
+    var sourceLabel: String = ""
+    var sourceType: SourceType = SourceType.manual
+    var isFavorite: Bool = false
+    var isArchived: Bool = false
+    var timeMin: Int = 0
+    var servings: Int = 2
+    var difficulty: String = "easy"
+    var tags: [String] = []
+    var ingredients: [Ingredient] = []
+    var steps: [String] = []
+    var notes: String = ""
+    var addedAt: Date = Date.now
+    var lists: [RecipeList]?
 
     init(
         title: String,

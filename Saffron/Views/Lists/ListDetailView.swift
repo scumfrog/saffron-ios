@@ -11,12 +11,12 @@ struct ListDetailView: View {
 
     var body: some View {
         Group {
-            if list.recipes.isEmpty {
+            if (list.recipes ?? []).isEmpty {
                 emptyState
             } else {
                 ScrollView {
                     LazyVStack(spacing: 0) {
-                        ForEach(Array(list.recipes.enumerated()), id: \.element.id) { index, recipe in
+                        ForEach(Array((list.recipes ?? []).enumerated()), id: \.element.id) { index, recipe in
                             Button { selectedRecipe = recipe } label: {
                                 RecipeRowView(recipe: recipe, isFirst: index == 0)
                             }
@@ -62,7 +62,7 @@ struct ListDetailView: View {
     }
 
     private func removeFromList(_ recipe: Recipe) {
-        list.recipes.removeAll { $0.id == recipe.id }
+        list.recipes?.removeAll { $0.id == recipe.id }
         try? context.save()
     }
 }

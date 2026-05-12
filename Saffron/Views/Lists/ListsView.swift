@@ -97,7 +97,7 @@ struct ListCardView: View {
                     .font(.system(size: 15, weight: .semibold))
                     .tracking(-0.2)
                     .lineLimit(2)
-                Text("\(list.recipes.count) recipes")
+                Text("\((list.recipes ?? []).count) recipes")
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
             }

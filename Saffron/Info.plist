@@ -33,6 +33,10 @@
 	<string>Used to capture recipe photos.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>Used to import recipe photos.</string>
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>remote-notification</string>
+	</array>
 	<key>UILaunchScreen</key>
 	<dict>
 		<key>UIColorName</key>

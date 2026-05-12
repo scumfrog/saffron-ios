@@ -4,13 +4,13 @@ import SwiftUI
 
 @Model
 final class RecipeList {
-    var id: UUID
-    var name: String
-    var icon: String       // emoji
-    var colorHex: String
-    var createdAt: Date
+    var id: UUID = UUID()
+    var name: String = ""
+    var icon: String = "fork.knife"
+    var colorHex: String = "#8E8E93"
+    var createdAt: Date = Date.now
     @Relationship(deleteRule: .nullify, inverse: \Recipe.lists)
-    var recipes: [Recipe]
+    var recipes: [Recipe]?
 
     init(name: String, icon: String = "fork.knife", colorHex: String = "#8E8E93") {
         self.id = UUID()

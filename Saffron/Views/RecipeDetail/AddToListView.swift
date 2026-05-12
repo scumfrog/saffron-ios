@@ -75,14 +75,14 @@ struct AddToListView: View {
     }
 
     private func isInList(_ list: RecipeList) -> Bool {
-        list.recipes.contains { $0.id == recipe.id }
+        (list.recipes ?? []).contains { $0.id == recipe.id }
     }
 
     private func toggle(_ list: RecipeList) {
-        if let idx = list.recipes.firstIndex(where: { $0.id == recipe.id }) {
-            list.recipes.remove(at: idx)
+        if let idx = (list.recipes ?? []).firstIndex(where: { $0.id == recipe.id }) {
+            list.recipes?.remove(at: idx)
         } else {
-            list.recipes.append(recipe)
+            list.recipes?.append(recipe)
         }
         try? context.save()
     }
@@ -92,7 +92,7 @@ struct AddToListView: View {
         guard !name.isEmpty else { return }
         let list = RecipeList(name: name)
         context.insert(list)
-        list.recipes.append(recipe)
+        list.recipes = [recipe]
         try? context.save()
         newListName = ""
     }
