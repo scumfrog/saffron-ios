@@ -8,23 +8,13 @@ struct SaffronApp: App {
     @State private var theme = AppTheme()
 
     init() {
-        let config = ModelConfiguration(cloudKitDatabase: .automatic)
         do {
-            container = try ModelContainer(for: Recipe.self, RecipeList.self,
-                                           configurations: config)
+            container = try ModelContainer(
+                for: Recipe.self, RecipeList.self,
+                configurations: ModelConfiguration("SaffronV2")
+            )
         } catch {
-            // Store may be corrupted (e.g. from a failed CloudKit migration).
-            // Delete it and start fresh.
-            let url = config.url
-            try? FileManager.default.removeItem(at: url)
-            try? FileManager.default.removeItem(at: url.deletingPathExtension().appendingPathExtension("store-shm"))
-            try? FileManager.default.removeItem(at: url.deletingPathExtension().appendingPathExtension("store-wal"))
-            do {
-                container = try ModelContainer(for: Recipe.self, RecipeList.self,
-                                               configurations: config)
-            } catch {
-                fatalError("Failed to create ModelContainer: \(error)")
-            }
+            fatalError("Failed to create ModelContainer: \(error)")
         }
     }
 
