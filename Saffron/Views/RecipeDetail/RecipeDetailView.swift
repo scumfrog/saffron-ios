@@ -18,6 +18,7 @@ struct RecipeDetailView: View {
     @State private var imageFetchFailed = false
     @State private var saveError: String?
     @State private var showAllIngredients = false
+    @State private var showEditRecipe = false
     @State private var notes: String
 
     enum DetailTab: String, CaseIterable {
@@ -52,6 +53,10 @@ struct RecipeDetailView: View {
         }
         .sheet(isPresented: $showAddToList) {
             AddToListView(recipe: recipe)
+        }
+        .sheet(isPresented: $showEditRecipe) {
+            EditRecipeView(recipe: recipe)
+                .environment(theme)
         }
         .confirmationDialog("Delete recipe?", isPresented: $showDeleteConfirm, titleVisibility: .visible) {
             Button("Delete", role: .destructive) {
@@ -432,7 +437,7 @@ struct RecipeDetailView: View {
                     actionRow(icon: "link", title: "Original source", detail: recipe.sourceLabel, isLast: false)
                 }
             }
-            Button {} label: {
+            Button { showEditRecipe = true } label: {
                 actionRow(icon: "pencil", title: "Edit recipe", isLast: false)
             }
             Button { showAddToList = true } label: {
