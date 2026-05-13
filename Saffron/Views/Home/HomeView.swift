@@ -81,7 +81,7 @@ struct HomeView: View {
 
     private var recentsSection: some View {
         VStack(spacing: 0) {
-            SectionHeader(title: "Recent", subtitle: "This month")
+            SectionHeader(title: "Recent", subtitle: "\(recentRecipes.count) recipes")
             VStack(spacing: 0) {
                 ForEach(Array(recentRecipes.enumerated()), id: \.element.id) { index, recipe in
                     SwipeToDeleteRow(onDelete: { context.delete(recipe) }) {
