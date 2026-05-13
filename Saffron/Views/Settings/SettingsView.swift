@@ -129,7 +129,7 @@ struct SettingsView: View {
                     .listRowBackground(Color.clear)
 
                     NavigationLink("Licenses") { Text("Licenses") }
-                    NavigationLink("Privacy policy") { Text("Privacy Policy") }
+                    NavigationLink("Privacy Policy") { Text("Privacy Policy") }
                 } header: {
                     Text("About")
                 }

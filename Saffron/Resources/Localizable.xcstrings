@@ -140,6 +140,16 @@
         }
       }
     },
+    "Add photo": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Añadir foto"
+          }
+        }
+      }
+    },
     "Add step": {
       "localizations": {
         "es": {
@@ -297,6 +307,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Crear"
+          }
+        }
+      }
+    },
+    "Create manually": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Crear manualmente"
           }
         }
       }

@@ -6,7 +6,7 @@ struct AddRecipeView: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.modelContext) private var context
     @State private var viewModel = AddRecipeViewModel()
-    @State private var pendingURL: URL? = nil
+    @State private var showManualEntry = false
     @FocusState private var urlFieldFocused: Bool
 
     var body: some View {
@@ -32,6 +32,10 @@ struct AddRecipeView: View {
                     }
                 }
             }
+        }
+        .sheet(isPresented: $showManualEntry) {
+            ManualRecipeView { dismiss() }
+                .environment(theme)
         }
         .onReceive(NotificationCenter.default.publisher(for: .pendingRecipeURL)) { note in
             if let url = note.object as? URL {
@@ -85,6 +89,28 @@ struct AddRecipeView: View {
                 }
                 .disabled(!viewModel.canExtract)
                 .opacity(viewModel.canExtract ? 1 : 0.5)
+                .padding(.horizontal, 16)
+
+                // Divider
+                HStack(spacing: 12) {
+                    Rectangle().fill(Color(.separator)).frame(height: 0.5)
+                    Text("or")
+                        .font(.system(size: 13))
+                        .foregroundStyle(.secondary)
+                    Rectangle().fill(Color(.separator)).frame(height: 0.5)
+                }
+                .padding(.horizontal, 16)
+
+                Button {
+                    showManualEntry = true
+                } label: {
+                    Label(String(localized: "Create manually"), systemImage: "pencil")
+                        .font(.system(size: 16, weight: .medium))
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 14)
+                        .background(Color(.secondarySystemGroupedBackground), in: RoundedRectangle(cornerRadius: 14))
+                        .foregroundStyle(.primary)
+                }
                 .padding(.horizontal, 16)
 
                 if let platform = viewModel.unsupportedPlatform {
