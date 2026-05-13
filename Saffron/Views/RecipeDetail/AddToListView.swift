@@ -20,8 +20,9 @@ struct AddToListView: View {
                     List(lists) { list in
                         Button { toggle(list) } label: {
                             HStack(spacing: 12) {
-                                Text(list.icon)
+                                Image(systemName: list.icon)
                                     .font(.title2)
+                                    .foregroundStyle(Color(hex: list.colorHex) ?? theme.accent)
                                 Text(list.name)
                                     .foregroundStyle(.primary)
                                     .font(.system(size: 16))
