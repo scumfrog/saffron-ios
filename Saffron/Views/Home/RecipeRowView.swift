@@ -35,8 +35,10 @@ struct RecipeRowView: View {
                     .lineLimit(1)
 
                 HStack(spacing: 6) {
-                    Label("\(recipe.timeMin) min", systemImage: "clock")
-                    Text("·")
+                    if recipe.timeMin > 0 {
+                        Label("\(recipe.timeMin) min", systemImage: "clock")
+                        Text("·")
+                    }
                     Label("\(recipe.servings)", systemImage: "person.2")
                     Text("·")
                     Image(systemName: recipe.sourceType.systemImage)

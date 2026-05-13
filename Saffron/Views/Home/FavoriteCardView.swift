@@ -38,7 +38,9 @@ struct FavoriteCardView: View {
                     .shadow(color: .black.opacity(0.4), radius: 2)
 
                 HStack(spacing: 10) {
-                    Label("\(recipe.timeMin) min", systemImage: "clock")
+                    if recipe.timeMin > 0 {
+                        Label("\(recipe.timeMin) min", systemImage: "clock")
+                    }
                     Label("\(recipe.servings)", systemImage: "person.2")
                 }
                 .font(.caption)

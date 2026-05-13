@@ -223,7 +223,7 @@ struct RecipeDetailView: View {
 
     private var metadataRow: some View {
         HStack {
-            metaItem(icon: "clock", label: "Time", value: "\(recipe.timeMin) min")
+            metaItem(icon: "clock", label: "Time", value: recipe.timeMin > 0 ? "\(recipe.timeMin) min" : "—")
             Divider().frame(height: 32)
             metaItem(icon: "flame", label: "Difficulty", value: recipe.localizedDifficulty)
             Divider().frame(height: 32)
