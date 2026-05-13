@@ -98,7 +98,12 @@ struct SearchView: View {
                                             .resizable()
                                             .scaledToFill()
                                     } else {
-                                        theme.accent.opacity(0.15)
+                                        RoundedRectangle(cornerRadius: 10)
+                                            .fill(theme.accent.opacity(0.15))
+                                            .overlay(
+                                                Image(systemName: "fork.knife")
+                                                    .foregroundStyle(theme.accent.opacity(0.5))
+                                            )
                                     }
                                 }
                                 .frame(width: 48, height: 48)
@@ -109,10 +114,13 @@ struct SearchView: View {
                                         .font(.system(size: 15, weight: .semibold))
                                         .tracking(-0.2)
                                         .foregroundStyle(.primary)
-                                    HStack(spacing: 4) {
-                                        ForEach(recipe.tags.prefix(3), id: \.self) { tag in
-                                            Text("#\(tag)")
+                                        .lineLimit(1)
+                                    HStack(spacing: 6) {
+                                        if recipe.timeMin > 0 {
+                                            Label("\(recipe.timeMin) min", systemImage: "clock")
+                                            Text("·")
                                         }
+                                        Label("\(recipe.servings)", systemImage: "person.2")
                                     }
                                     .font(.caption)
                                     .foregroundStyle(.secondary)

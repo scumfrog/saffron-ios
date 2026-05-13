@@ -80,6 +80,7 @@ struct ListsView: View {
 struct ListCardView: View {
     let list: RecipeList
     @Environment(\.modelContext) private var context
+    @State private var showDeleteConfirm = false
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
@@ -111,10 +112,18 @@ struct ListCardView: View {
         .contentShape(Rectangle())
         .contextMenu {
             Button(role: .destructive) {
-                context.delete(list)
+                showDeleteConfirm = true
             } label: {
                 Label("Delete list", systemImage: "trash")
             }
+        }
+        .confirmationDialog("Delete list?", isPresented: $showDeleteConfirm, titleVisibility: .visible) {
+            Button("Delete", role: .destructive) {
+                context.delete(list)
+            }
+            Button("Cancel", role: .cancel) {}
+        } message: {
+            Text("This will remove the list. Recipes won't be deleted.")
         }
     }
 }

@@ -7,6 +7,7 @@ struct AddRecipeView: View {
     @Environment(\.modelContext) private var context
     @State private var viewModel = AddRecipeViewModel()
     @State private var pendingURL: URL? = nil
+    @FocusState private var urlFieldFocused: Bool
 
     var body: some View {
         NavigationStack {
@@ -61,6 +62,8 @@ struct AddRecipeView: View {
                             .keyboardType(.URL)
                             .autocorrectionDisabled()
                             .textInputAutocapitalization(.never)
+                            .focused($urlFieldFocused)
+                            .onSubmit { Task { urlFieldFocused = false; await viewModel.extract() } }
                     }
                     .padding(.horizontal, 14)
                     .padding(.vertical, 12)
@@ -69,6 +72,7 @@ struct AddRecipeView: View {
                 }
 
                 Button {
+                    urlFieldFocused = false
                     Task { await viewModel.extract() }
                 } label: {
                     Label("Extract recipe", systemImage: "sparkles")

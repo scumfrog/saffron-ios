@@ -18,6 +18,7 @@ struct RecipeDetailView: View {
     @State private var imageFetchFailed = false
     @State private var saveError: String?
     @State private var showAllIngredients = false
+    @State private var notes: String
 
     enum DetailTab: String, CaseIterable {
         case ingredients = "Ingredients"
@@ -29,6 +30,7 @@ struct RecipeDetailView: View {
         self.recipe = recipe
         _servings = State(initialValue: recipe.servings)
         _isFavorite = State(initialValue: recipe.isFavorite)
+        _notes = State(initialValue: recipe.notes)
     }
 
     private var ratio: Double {
@@ -410,22 +412,15 @@ struct RecipeDetailView: View {
     // MARK: - Notes tab
 
     private var notesTab: some View {
-        VStack(alignment: .leading) {
-            if recipe.notes.isEmpty {
-                Text("No notes yet. Tap to add.")
-                    .font(.system(size: 15))
-                    .foregroundStyle(.secondary)
-                    .italic()
-            } else {
-                Text(recipe.notes)
-                    .font(.system(size: 15))
-                    .tracking(-0.2)
-                    .lineSpacing(3)
-            }
-        }
-        .frame(maxWidth: .infinity, minHeight: 80, alignment: .topLeading)
-        .padding(16)
-        .background(Color(.secondarySystemGroupedBackground), in: RoundedRectangle(cornerRadius: 14))
+        TextField("No notes yet. Tap to add.", text: $notes, axis: .vertical)
+            .font(.system(size: 15))
+            .tracking(-0.2)
+            .lineSpacing(3)
+            .lineLimit(3...)
+            .frame(maxWidth: .infinity, minHeight: 80, alignment: .topLeading)
+            .padding(16)
+            .background(Color(.secondarySystemGroupedBackground), in: RoundedRectangle(cornerRadius: 14))
+            .onChange(of: notes) { recipe.notes = notes }
     }
 
     // MARK: - Actions
