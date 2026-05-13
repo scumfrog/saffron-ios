@@ -19,7 +19,7 @@ struct OnboardingView: View {
             id: 0,
             icon: "archivebox.fill",
             title: "Recipes that never disappear",
-            subtitle: "Every time you save a recipe, we store a local copy. Even if the original link goes down, you keep it."
+            subtitle: "Paste a link from any recipe website or blog. We save a complete local copy — ingredients, steps, and all."
         ),
         .init(
             id: 1,

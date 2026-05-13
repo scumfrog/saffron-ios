@@ -20,8 +20,33 @@ final class AddRecipeViewModel {
 
     var canExtract: Bool {
         guard let url = URL(string: urlText) else { return false }
-        return url.scheme == "https" || url.scheme == "http"
+        guard url.scheme == "https" || url.scheme == "http" else { return false }
+        return unsupportedPlatform == nil
     }
+
+    /// Non-nil when the pasted URL belongs to a platform that doesn't expose
+    /// recipe text (Instagram, TikTok, etc.). Returns the display name.
+    var unsupportedPlatform: String? {
+        guard let host = URL(string: urlText)?.host?.lowercased() else { return nil }
+        return Self.unsupportedHosts[host]
+    }
+
+    private static let unsupportedHosts: [String: String] = [
+        "instagram.com": "Instagram",
+        "www.instagram.com": "Instagram",
+        "tiktok.com": "TikTok",
+        "www.tiktok.com": "TikTok",
+        "vm.tiktok.com": "TikTok",
+        "youtube.com": "YouTube",
+        "www.youtube.com": "YouTube",
+        "youtu.be": "YouTube",
+        "facebook.com": "Facebook",
+        "www.facebook.com": "Facebook",
+        "threads.net": "Threads",
+        "www.threads.net": "Threads",
+        "x.com": "X",
+        "twitter.com": "X",
+    ]
 
     func extract() async {
         guard let url = URL(string: urlText) else { return }

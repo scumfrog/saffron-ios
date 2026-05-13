@@ -81,6 +81,18 @@ export default {
     // Extract og:image BEFORE stripping tags
     const ogImage = extractOgImage(html);
 
+    // ── Path 1: JSON-LD structured data ──────────────────────────────────────
+    // Most recipe sites (WordPress/WPRM, food blogs) embed schema.org/Recipe in
+    // a <script type="application/ld+json"> block.  Parse it directly — no AI
+    // tokens needed, no 12 000-char truncation issue.
+    const ldRecipe = extractJsonLdRecipe(html);
+    if (ldRecipe) {
+      const recipe = mapJsonLdToRecipe(ldRecipe, url.toString(), ogImage);
+      normalizeRecipe(recipe);
+      return corsResponse(json(recipe, 200));
+    }
+
+    // ── Path 2: AI text extraction (fallback) ─────────────────────────────────
     // Extract visible text from HTML (strip tags)
     const text = stripTags(html).substring(0, 12000);
 
@@ -128,28 +140,212 @@ export default {
       recipe.coverURL = ogImage;
     }
 
-    // Sanitize: quantity must always be a number
-    if (Array.isArray(recipe.ingredients)) {
-      recipe.ingredients = recipe.ingredients.map(ing => ({
-        ...ing,
-        quantity: typeof ing.quantity === 'number' ? ing.quantity : 0,
-      }));
-    }
-
-    // Normalize difficulty to English canonical values
-    if (recipe.difficulty) {
-      const d = String(recipe.difficulty).toLowerCase();
-      if (d === 'easy' || d === 'fácil' || d === 'facil' || d === 'fácil') recipe.difficulty = 'easy';
-      else if (d === 'medium' || d === 'media' || d === 'medio') recipe.difficulty = 'medium';
-      else if (d === 'hard' || d === 'difícil' || d === 'dificil' || d === 'alta') recipe.difficulty = 'hard';
-      else recipe.difficulty = 'easy';
-    }
+    normalizeRecipe(recipe);
 
     return corsResponse(json(recipe, 200));
   },
 };
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
+
+/**
+ * Find the first schema.org/Recipe node in any <script type="application/ld+json">
+ * block on the page.  Handles both top-level objects and @graph arrays.
+ */
+function extractJsonLdRecipe(html) {
+  const scriptRe = /<script[^>]+type=["']application\/ld\+json["'][^>]*>([\s\S]*?)<\/script>/gi;
+  let match;
+  while ((match = scriptRe.exec(html)) !== null) {
+    let data;
+    try { data = JSON.parse(match[1]); } catch { continue; }
+
+    const node = findRecipeNode(data);
+    if (node) return node;
+  }
+  return null;
+}
+
+function findRecipeNode(data) {
+  if (!data) return null;
+  // Unwrap @graph array
+  if (Array.isArray(data['@graph'])) {
+    for (const item of data['@graph']) {
+      const found = findRecipeNode(item);
+      if (found) return found;
+    }
+  }
+  // Top-level array
+  if (Array.isArray(data)) {
+    for (const item of data) {
+      const found = findRecipeNode(item);
+      if (found) return found;
+    }
+  }
+  // Check @type (may be a string or array)
+  const type = data['@type'];
+  if (typeof type === 'string' && type.toLowerCase().includes('recipe')) return data;
+  if (Array.isArray(type) && type.some(t => String(t).toLowerCase().includes('recipe'))) return data;
+  return null;
+}
+
+/**
+ * Map a schema.org/Recipe JSON-LD node to our ExtractedRecipe format.
+ */
+function mapJsonLdToRecipe(ld, pageURL, ogImage) {
+  const title = textValue(ld.name) || '';
+
+  // Cover image: schema.org image can be string, array, or ImageObject
+  let coverURL = ogImage ?? null;
+  if (ld.image) {
+    const img = Array.isArray(ld.image) ? ld.image[0] : ld.image;
+    const candidate = typeof img === 'string' ? img : (img?.url ?? img?.contentUrl ?? null);
+    if (candidate) coverURL = candidate;
+  }
+
+  // Source label from URL hostname
+  const host = (() => { try { return new URL(pageURL).hostname.replace(/^www\./, ''); } catch { return ''; } })();
+
+  // Duration: ISO 8601 PT\d+[HM]
+  const totalTime = parseDurationMin(ld.totalTime) ?? parseDurationMin(ld.cookTime) ?? null;
+
+  // Servings
+  const servings = parseServings(ld.recipeYield) ?? null;
+
+  // Ingredients
+  const ingredients = parseIngredients(ld.recipeIngredient ?? []);
+
+  // Steps
+  const steps = parseSteps(ld.recipeInstructions ?? []);
+
+  // Tags: keywords + recipeCategory + recipeCuisine
+  const tagSources = [
+    ...(Array.isArray(ld.keywords) ? ld.keywords : (ld.keywords ? [ld.keywords] : [])),
+    ...(Array.isArray(ld.recipeCategory) ? ld.recipeCategory : (ld.recipeCategory ? [ld.recipeCategory] : [])),
+    ...(Array.isArray(ld.recipeCuisine) ? ld.recipeCuisine : (ld.recipeCuisine ? [ld.recipeCuisine] : [])),
+  ];
+  const tags = tagSources
+    .flatMap(t => t.split(/[,;]/))
+    .map(t => t.trim().toLowerCase())
+    .filter(Boolean)
+    .slice(0, 6);
+
+  return { title, coverURL, sourceLabel: host, timeMin: totalTime, servings, difficulty: null, tags, ingredients, steps };
+}
+
+// ── JSON-LD parsing utilities ──────────────────────────────────────────────
+
+function textValue(v) {
+  if (!v) return '';
+  if (typeof v === 'string') return v.trim();
+  if (typeof v === 'object') return String(v['@value'] ?? v.name ?? '').trim();
+  return String(v).trim();
+}
+
+/** Parse ISO 8601 duration like PT1H30M or PT45M → minutes */
+function parseDurationMin(iso) {
+  if (!iso) return null;
+  const m = String(iso).match(/PT(?:(\d+)H)?(?:(\d+)M)?/i);
+  if (!m) return null;
+  return (parseInt(m[1] ?? '0', 10) * 60) + parseInt(m[2] ?? '0', 10) || null;
+}
+
+/** Parse recipeYield: "4 servings", "4-6", 4 → first integer */
+function parseServings(yield_) {
+  if (!yield_) return null;
+  const s = Array.isArray(yield_) ? yield_[0] : yield_;
+  const m = String(s).match(/\d+/);
+  return m ? parseInt(m[0], 10) : null;
+}
+
+/**
+ * Parse recipeIngredient strings like "300 g de azúcar moreno"
+ * into { quantity, unit, name }.
+ * Best-effort — unit list covers the most common Spanish/English abbreviations.
+ */
+function parseIngredients(list) {
+  const UNITS = [
+    'kg','g','mg','l','ml','cl','dl',
+    'taza','tazas','cup','cups',
+    'cdta','cdtas','cucharadita','cucharaditas','tsp','teaspoon','teaspoons',
+    'cda','cdas','cucharada','cucharadas','tbsp','tablespoon','tablespoons',
+    'diente','dientes','clove','cloves',
+    'pizca','pizcas','pinch','punzada',
+    'rama','ramas','sprig','sprigs',
+    'hoja','hojas','leaf','leaves',
+    'rebanada','rebanadas','slice','slices',
+    'trozo','trozos','piece','pieces',
+    'paquete','paquetes','packet','packets',
+    'lata','latas','can','cans',
+    'bote','botes','jar','jars',
+  ];
+  const unitPattern = new RegExp(`^(${UNITS.join('|')})\\.?\\s*`, 'i');
+
+  return list.map(raw => {
+    const str = textValue(raw).trim();
+    // Match leading number (int, decimal, or fraction like 1/2)
+    const numMatch = str.match(/^(\d+(?:[.,]\d+)?(?:\s*\/\s*\d+)?)\s*/);
+    if (!numMatch) return { quantity: 0, unit: '', name: str };
+
+    let qty = numMatch[1].replace(',', '.');
+    // Resolve fractions (e.g. "1/2" → 0.5)
+    if (qty.includes('/')) {
+      const [n, d] = qty.split('/').map(s => parseFloat(s.trim()));
+      qty = d ? n / d : parseFloat(qty);
+    } else {
+      qty = parseFloat(qty);
+    }
+
+    const rest = str.slice(numMatch[0].length).trimStart();
+    const uMatch = rest.match(unitPattern);
+    const unit = uMatch ? uMatch[1].toLowerCase() : '';
+    const name = rest.slice(uMatch ? uMatch[0].length : 0)
+      .replace(/^de\s+/i, '')   // strip Spanish "de" connector ("300 g de azúcar" → "azúcar")
+      .trim();
+
+    return { quantity: qty, unit, name: name || str };
+  });
+}
+
+/** Parse recipeInstructions: array of strings or HowToStep objects */
+function parseSteps(instructions) {
+  if (!Array.isArray(instructions)) return [];
+  const steps = [];
+  for (const item of instructions) {
+    if (typeof item === 'string') {
+      const t = item.trim();
+      if (t) steps.push(t);
+    } else if (item['@type'] === 'HowToSection' && Array.isArray(item.itemListElement)) {
+      // Recurse into sections
+      steps.push(...parseSteps(item.itemListElement));
+    } else {
+      const t = textValue(item.text ?? item.name ?? '');
+      if (t) steps.push(t);
+    }
+  }
+  return steps;
+}
+
+// ── Shared post-processing ─────────────────────────────────────────────────
+
+/** Mutates recipe in-place: sanitize quantity, normalize difficulty. */
+function normalizeRecipe(recipe) {
+  // Sanitize: quantity must always be a number
+  if (Array.isArray(recipe.ingredients)) {
+    recipe.ingredients = recipe.ingredients.map(ing => ({
+      ...ing,
+      quantity: typeof ing.quantity === 'number' ? ing.quantity : 0,
+    }));
+  }
+
+  // Normalize difficulty to English canonical values
+  if (recipe.difficulty) {
+    const d = String(recipe.difficulty).toLowerCase();
+    if (d === 'easy' || d === 'fácil' || d === 'facil') recipe.difficulty = 'easy';
+    else if (d === 'medium' || d === 'media' || d === 'medio') recipe.difficulty = 'medium';
+    else if (d === 'hard' || d === 'difícil' || d === 'dificil' || d === 'alta') recipe.difficulty = 'hard';
+    else recipe.difficulty = 'easy';
+  }
+}
 
 function buildPrompt(url, text) {
   return `Extract the recipe from this webpage. URL: ${url}

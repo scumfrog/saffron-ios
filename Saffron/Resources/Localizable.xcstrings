@@ -891,6 +891,16 @@
         }
       }
     },
+    "Paste a link from any recipe website or blog. We save a complete local copy — ingredients, steps, and all." : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pega un enlace de cualquier web o blog de recetas. Guardamos una copia completa: ingredientes, pasos y todo."
+          }
+        }
+      }
+    },
     "Preferences" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -1365,6 +1375,38 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "¿Desarchivar receta?"
+          }
+        }
+      }
+    },
+    "unsupported.url.message" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ posts don't include the full recipe. Paste the original recipe website link instead."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Los posts de %@ no incluyen la receta completa. Pega el enlace de la web original de la receta."
+          }
+        }
+      }
+    },
+    "unsupported.url.title" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Incompatible link"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Enlace no compatible"
           }
         }
       }

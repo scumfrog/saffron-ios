@@ -83,19 +83,40 @@ struct AddRecipeView: View {
                 .opacity(viewModel.canExtract ? 1 : 0.5)
                 .padding(.horizontal, 16)
 
-                HStack(alignment: .top, spacing: 10) {
-                    Image(systemName: "archivebox")
-                        .font(.caption)
-                        .foregroundStyle(.green)
-                        .padding(.top, 1)
-                    Text("We save a local copy so you never lose the recipe, even if the link disappears.")
-                        .font(.system(size: 13))
-                        .foregroundStyle(.secondary)
-                        .lineSpacing(2)
+                if let platform = viewModel.unsupportedPlatform {
+                    HStack(alignment: .top, spacing: 10) {
+                        Image(systemName: "exclamationmark.triangle.fill")
+                            .font(.caption)
+                            .foregroundStyle(.orange)
+                            .padding(.top, 1)
+                        VStack(alignment: .leading, spacing: 3) {
+                            Text("unsupported.url.title")
+                                .font(.system(size: 13, weight: .semibold))
+                                .foregroundStyle(.primary)
+                            Text(String(format: String(localized: "unsupported.url.message"), platform))
+                                .font(.system(size: 13))
+                                .foregroundStyle(.secondary)
+                                .lineSpacing(2)
+                        }
+                    }
+                    .padding(14)
+                    .background(Color.orange.opacity(0.1), in: RoundedRectangle(cornerRadius: 12))
+                    .padding(.horizontal, 16)
+                } else {
+                    HStack(alignment: .top, spacing: 10) {
+                        Image(systemName: "archivebox")
+                            .font(.caption)
+                            .foregroundStyle(.green)
+                            .padding(.top, 1)
+                        Text("We save a local copy so you never lose the recipe, even if the link disappears.")
+                            .font(.system(size: 13))
+                            .foregroundStyle(.secondary)
+                            .lineSpacing(2)
+                    }
+                    .padding(14)
+                    .background(Color.green.opacity(0.08), in: RoundedRectangle(cornerRadius: 12))
+                    .padding(.horizontal, 16)
                 }
-                .padding(14)
-                .background(Color.green.opacity(0.08), in: RoundedRectangle(cornerRadius: 12))
-                .padding(.horizontal, 16)
             }
             .padding(.top, 24)
         }
